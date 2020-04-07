@@ -1,12 +1,9 @@
 <html>
 <head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css" type="text/css" />
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis-network.min.js"> </script>
-
-<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
-<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
-
-<style type="text/css">
+    <!--Stylesheets for both constellation and pyvis-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="render.css">
+    <style type="text/css">
 
         #mynetwork {
             width: {{width}};
@@ -118,10 +115,52 @@
         {% endif %}
 </style>
 
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis-network.min.js"> </script>
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, post-check=0, pre-check=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width; initial-scale=1.0;">
+
 </head>
 
 <body>
+<!--Draw logo, new protein input field, submit button -->
+<div id='interface-top'>
+    <!-- Make requests for a new protein (left), adjust covariance cutoff (center), also show logo (href to homescreen) (Right) -->
+
+
+    <!--FIXME-->
+
+    <div id = 'form-container' align="left" >
+        <form action = "/process_request" method = "post" enctype="multipart/form-data">
+
+        <div class = 'user-input' id="uniprot-input"  >
+            <input id="prot-name-input" type = "text" name="pnamein" placeholder="Enter Uniprot ID Here" align="middle"><br>
+        </div>
+
+        <div class = 'user-input' id="submit-button-div">
+            <!--FIXME: Use javascript to generate new user token-->
+            <input type="hidden" id="token" name="token" value="{}">
+            <button type="submit" value="Render Graph" style="border: 0; background: transparent">
+                <img src="submit.png">
+            </button>
+        </div>
+
+        </form>
+    </div>
+
+    <div id = 'slide-container' align="middle">
+        <input id="thresh-slider" type="range" name="threshin" min="0" max="1" value="0.5" step="0.01" class="slider" id="myrange">
+        <h4>adjust covariance cutoff: <span id="covariance-cutoff"></span></h4>
+    </div>
+
+    <div id = 'logo-container' align = 'right'><a href="/"><img src="constellation.png"></a></div>
+
+
+</div>
+
 <div id = "mynetwork"></div>
+
 {% if nodes|length > 100 and physics_enabled %}
 <div id="loadingBar">
     <div class="outerBorder">
@@ -132,9 +171,15 @@
     </div>
 </div>
 {% endif %}
+
+
+
+
 {% if conf %}
 <div id = "config"></div>
 {% endif %}
+
+<!--Nodes and edges rendered here-->
 <script type="text/javascript">
 
     // initialize global variables.
@@ -143,10 +188,14 @@
     var network; 
     var container;
     var options, data;
-
-    
+    var threshold = document.getElementById('thresh-slider');
+    threshold.addEventListener('change', function() {
+    drawGraph();
+    });
     // This method is responsible for drawing the graph, returns the drawn network
     function drawGraph() {
+        var threshold_value = threshold.value;
+        console.log("Threshold: ", threshold_value)
         var container = document.getElementById('mynetwork');
         
         {% if use_DOT %}
@@ -167,8 +216,19 @@
         {% else %}
 
         // parsing and collecting nodes and edges from the python
+        const full_nodes = [{{nodes|tojson}}];
+        const full_edges = {{edges|tojson}};
+        console.log("nodes: ", {{nodes|tojson}});
+        console.log("Full nodes: ", full_nodes);
+        console.log("Full edges: ", full_edges);
+        const new_edges = full_edges.filter(d=>d.weight > threshold_value)
+        console.log("New edges", new_edges)
         nodes = new vis.DataSet({{nodes|tojson}});
-        edges = new vis.DataSet({{edges|tojson}});
+        edges = new vis.DataSet(new_edges);
+        console.log("Nodes", nodes)
+        console.log("Edges", edges)
+        // TODO: remove all edges that fall below the threshold.
+
 
         // adding nodes and edges to the graph
         data = {nodes: nodes, edges: edges};
@@ -252,7 +312,7 @@
 
 
         {% if nodes|length > 100 and physics_enabled %}
-        network.on("stabilizationProgress", function(params) {
+            network.on("stabilizationProgress", function(params) {
       		document.getElementById('loadingBar').removeAttribute("style");
 	        var maxWidth = 496;
 	        var minWidth = 20;
@@ -274,9 +334,22 @@
         return network;
 
     }
-
+    // TODO: Run this function every time slider is adjusted+
+    -
     drawGraph();
 
 </script>
+
+<!--slider bar updates here-->
+<script>
+    var slider = document.getElementById("thresh-slider");
+    var output = document.getElementById("covariance-cutoff");
+    output.innerHTML = slider.value; // Display the default slider value
+    // Update the current slider value (each time you drag the slider handle)
+    slider.oninput = function() {
+      output.innerHTML = this.value;
+    }
+</script>
+
 </body>
 </html>

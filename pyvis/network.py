@@ -469,7 +469,7 @@ class Network(object):
             return self.write_html(name, notebook=True)
         else:
             self.write_html(name)
-            webbrowser.open(name)
+            #webbrowser.open(name)
 
     def prep_notebook(self,
                       custom_template=False, custom_template_path=None):
