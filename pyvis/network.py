@@ -10,7 +10,10 @@ from collections import defaultdict
 import networkx as nx
 import json
 import os
+import random
 
+def gen_user_token():
+    return random.randint(10000000, 99999999)
 
 class Network(object):
     """
@@ -398,7 +401,8 @@ class Network(object):
         check_html(name)
         self.write_html(name)
 
-    def write_html(self, name, notebook=False):
+    def write_html(self, name, uniprot, notebook=False):
+        # TODO: put uniprot in jinja template
         """
         This method gets the data structures supporting the nodes, edges,
         and options and updates the template to write the HTML holding
@@ -449,7 +453,9 @@ class Network(object):
                                     widget=self.widget,
                                     bgcolor=self.bgcolor,
                                     conf=self.conf,
-                                    tooltip_link=use_link_template)
+                                    tooltip_link=use_link_template,
+                                    uniprot=uniprot,
+                                    token = gen_user_token())
 
         with open(name, "w+") as out:
             out.write(self.html)
@@ -457,7 +463,7 @@ class Network(object):
         if notebook:
             return IFrame(name, width=self.width, height=self.height)
 
-    def show(self, name):
+    def show(self, name, uniprot):
         """
         Writes a static HTML file and saves it locally before opening.
 
@@ -468,7 +474,7 @@ class Network(object):
         if self.template is not None:
             return self.write_html(name, notebook=True)
         else:
-            self.write_html(name)
+            self.write_html(name, uniprot)
             #webbrowser.open(name)
 
     def prep_notebook(self,

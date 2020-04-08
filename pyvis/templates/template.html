@@ -120,6 +120,16 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width; initial-scale=1.0;">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-163099436-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-163099436-1');
+    </script>
+
 
 </head>
 
@@ -131,7 +141,7 @@
 
     <!--FIXME-->
 
-    <div id = 'form-container' align="left" >
+    <div id = 'form-container' align="center" >
         <form action = "/process_request" method = "post" enctype="multipart/form-data">
 
         <div class = 'user-input' id="uniprot-input"  >
@@ -140,20 +150,25 @@
 
         <div class = 'user-input' id="submit-button-div">
             <!--FIXME: Use javascript to generate new user token-->
-            <input type="hidden" id="token" name="token" value="{}">
+            <input type="hidden" id="token" name="token" value="{{token}}}">
+            <input id="thresh-slider" type="hidden" name="threshin"  value="0" step="0.01" class="slider" id="myrange">
+
             <button type="submit" value="Render Graph" style="border: 0; background: transparent">
                 <img src="submit.png">
             </button>
+
+
         </div>
 
         </form>
     </div>
-
-    <div id = 'slide-container' align="middle">
+    <div id = 'graph-container' align="center">
+        <img src="plot/{{uniprot}}.png">
+    </div>
+    <div id = 'slide-container' align="center">
         <input id="thresh-slider" type="range" name="threshin" min="0" max="1" value="0.5" step="0.01" class="slider" id="myrange">
         <h4>adjust covariance cutoff: <span id="covariance-cutoff"></span></h4>
     </div>
-
     <div id = 'logo-container' align = 'right'><a href="/"><img src="constellation.png"></a></div>
 
 
