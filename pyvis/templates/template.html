@@ -1,15 +1,20 @@
 <html>
 <head>
+    <title>Constellation</title>
+
+    <meta name="viewport" content="width=device-width; initial-scale=1.0;">
+
     <!--Stylesheets for both constellation and pyvis-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="render.css">
     <style type="text/css">
 
         #mynetwork {
-            width: {{width}};
+            width: 100%;
             height: {{height}};
             background-color: {{bgcolor}};
-            border: 1px solid lightgray;
+            border: 3px solid #ffa5a5;
+
             position: relative;
             float: left;
         }
@@ -17,7 +22,7 @@
         {% if nodes|length > 100 and physics_enabled %}
         #loadingBar {
             position:absolute;
-            top:0px;
+            top:248px;
             left:0px;
             width: {{width}};
             height: {{height}};
@@ -138,9 +143,6 @@
 <div id='interface-top'>
     <!-- Make requests for a new protein (left), adjust covariance cutoff (center), also show logo (href to homescreen) (Right) -->
 
-
-    <!--FIXME-->
-
     <div id = 'form-container' align="center" >
         <form action = "/process_request" method = "post" enctype="multipart/form-data">
 
@@ -150,13 +152,11 @@
 
         <div class = 'user-input' id="submit-button-div">
             <!--FIXME: Use javascript to generate new user token-->
-            <input type="hidden" id="token" name="token" value="{{token}}}">
-            <input id="thresh-slider" type="hidden" name="threshin"  value="0" step="0.01" class="slider" id="myrange">
+            <input type="hidden" id="token" name="token" value="{{token}}">
 
             <button type="submit" value="Render Graph" style="border: 0; background: transparent">
                 <img src="submit.png">
             </button>
-
 
         </div>
 
@@ -169,8 +169,6 @@
         <input id="thresh-slider" type="range" name="threshin" min="0" max="1" value="0.5" step="0.01" class="slider" id="myrange">
         <h4>adjust covariance cutoff: <span id="covariance-cutoff"></span></h4>
     </div>
-    <div id = 'logo-container' align = 'right'><a href="/"><img src="constellation.png"></a></div>
-
 
 </div>
 
@@ -187,6 +185,7 @@
 </div>
 {% endif %}
 
+<div id="footer"><img src = colorscale.png></div>
 
 
 
@@ -212,45 +211,48 @@
         var threshold_value = threshold.value;
         console.log("Threshold: ", threshold_value)
         var container = document.getElementById('mynetwork');
-        
-        {% if use_DOT %}
-
-        var DOTstring = "{{dot_lang|safe}}";
-        var parsedData = vis.network.convertDot(DOTstring);
-        
-        data = {
-          nodes: parsedData.nodes,
-          edges: parsedData.edges
-        }
-        
-        var options = parsedData.options;
-        options.nodes = {
-            shape: "dot"
-        }
-        
-        {% else %}
 
         // parsing and collecting nodes and edges from the python
         const full_nodes = [{{nodes|tojson}}];
         const full_edges = {{edges|tojson}};
-        console.log("nodes: ", {{nodes|tojson}});
         console.log("Full nodes: ", full_nodes);
-        console.log("Full edges: ", full_edges);
-        const new_edges = full_edges.filter(d=>d.weight > threshold_value)
-        console.log("New edges", new_edges)
-        nodes = new vis.DataSet({{nodes|tojson}});
+        const new_edges = full_edges.filter(d=>d.weight > threshold_value);
+        console.log("Full edges", full_edges)
+        console.log("New edges", new_edges);
+
+        var new_nodes_index = []; //list of nodes that have edges
+
+        for (i in new_edges){
+            if (!(new_nodes_index.includes(new_edges[i].to))) { //List should have no redunancies
+                new_nodes_index.push(new_edges[i].to);
+            }
+             if (!(new_nodes_index.includes(new_edges[i].from))) { //List should have no redunancies
+                new_nodes_index.push(new_edges[i].from);
+            }
+        }
+        console.log("Full node length: ", full_nodes[0].length);
+        const new_nodes = full_nodes[0].filter(d=>new_nodes_index.includes(d.id));
+
+        console.log("New nodes: ", new_nodes);
+
+
+
+
+
+        //Cast the nodes an edges to vis dataset.
+        //nodes = new vis.DataSet({{nodes|tojson}});
+        nodes = new vis.DataSet(new_nodes);
         edges = new vis.DataSet(new_edges);
-        console.log("Nodes", nodes)
-        console.log("Edges", edges)
-        // TODO: remove all edges that fall below the threshold.
+
+
+
 
 
         // adding nodes and edges to the graph
         data = {nodes: nodes, edges: edges};
 
         var options = {{options|safe}};
-        
-        {% endif %}
+
 
         {% if conf %}
         // if this network requires displaying the configure window,
@@ -348,11 +350,18 @@
 
         return network;
 
-    }
-    // TODO: Run this function every time slider is adjusted+
-    -
-    drawGraph();
 
+
+    }
+    network = drawGraph();
+    network.on( 'hoverNode', function(properties) {
+                var ids = properties.nodes;
+                var clickedNodes = nodes.get(ids);
+                console.log('clicked nodes:', clickedNodes);
+                var ids = properties.edges;
+                var clickedEdges = edges.get(ids);
+                console.log('clicked edges:', clickedEdges);
+       });
 </script>
 
 <!--slider bar updates here-->

@@ -330,13 +330,14 @@ class Network(object):
         edge_exists = False
 
         # verify nodes exists
-        assert source in self.get_nodes(), \
-            "non existent node '" + str(source) + "'"
+        #assert source in self.get_nodes(), \
+        #    "non existent node '" + str(source) + "'"
 
-        assert to in self.get_nodes(), \
-            "non existent node '" + str(to) + "'"
+    #        assert to in self.get_nodes(), \
+    #        "non existent node '" + str(to) + "'"
 
         # we only check existing edge for undirected graphs
+        """
         if not self.directed:
             for e in self.edges:
                 frm = e['from']
@@ -347,7 +348,7 @@ class Network(object):
                 ):
                     # edge already exists
                     edge_exists = True
-
+        """
         if not edge_exists:
             e = Edge(source, to, self.directed, **options)
             self.edges.append(e.options)
@@ -366,7 +367,7 @@ class Network(object):
         """
         for edge in edges:
             # if incoming tuple contains a weight
-            if len(edge) == 3:
+            if True:
                 self.add_edge(edge[0], edge[1], width=edge[2])
             else:
                 self.add_edge(edge[0], edge[1])
@@ -412,7 +413,7 @@ class Network(object):
         """
         check_html(name)
         # here, check if an href is present in the hover data
-        use_link_template = False
+        use_link_template = False # FIXME change to false if things go wrong
         for n in self.nodes:
             title = n.get("title", None)
             if title:
