@@ -402,7 +402,7 @@ class Network(object):
         check_html(name)
         self.write_html(name)
 
-    def write_html(self, name, uniprot, notebook=False):
+    def write_html(self, name, uniprot, covar_threshold, notebook=False):
         # TODO: put uniprot in jinja template
         """
         This method gets the data structures supporting the nodes, edges,
@@ -456,7 +456,8 @@ class Network(object):
                                     conf=self.conf,
                                     tooltip_link=use_link_template,
                                     uniprot=uniprot,
-                                    token = gen_user_token())
+                                    token = gen_user_token(),
+                                    threshold = covar_threshold)
 
         with open(name, "w+") as out:
             out.write(self.html)
@@ -464,7 +465,7 @@ class Network(object):
         if notebook:
             return IFrame(name, width=self.width, height=self.height)
 
-    def show(self, name, uniprot):
+    def show(self, name, uniprot, covar_threshold):
         """
         Writes a static HTML file and saves it locally before opening.
 
@@ -475,7 +476,7 @@ class Network(object):
         if self.template is not None:
             return self.write_html(name, notebook=True)
         else:
-            self.write_html(name, uniprot)
+            self.write_html(name, uniprot, covar_threshold)
             #webbrowser.open(name)
 
     def prep_notebook(self,
