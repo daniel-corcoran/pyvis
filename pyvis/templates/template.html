@@ -229,7 +229,7 @@
         console.log("Full node length: ", full_nodes[0].length);
         var new_nodes = full_nodes[0].filter(d=>new_nodes_index.includes(d.id));
         for(i in new_nodes){
-            new_nodes[i].title = new_nodes[i].title_pf + "<br>Connections: " + nodes_edges_count[new_nodes[i].id];
+            new_nodes[i].title = new_nodes[i].title_pf + "<br>Connections: " + nodes_edges_count[new_nodes[i].id] * .5;
         }
 
         console.log(nodes_edges_count);
